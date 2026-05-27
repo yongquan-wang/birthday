@@ -375,22 +375,22 @@ tailwind.config = {
     <div class="w-16 h-1 bg-pink-400 mx-auto rounded-full mt-4 mb-10 reveal"></div>
 
     <!-- 计时器 -->
-    <div class="grid grid-cols-4 gap-3 md:gap-6 mb-8 reveal">
-      <div class="bg-pink-50 rounded-2xl p-4 md:p-6 shadow-md">
-        <div class="text-3xl md:text-5xl font-bold text-pink-600" id="days-together" style="font-family:Georgia,serif">0</div>
-        <div class="text-sm md:text-base text-pink-400 mt-2 font-medium">天</div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-6 mb-8 reveal">
+      <div class="bg-pink-50 rounded-2xl p-3 md:p-6 shadow-md">
+        <div class="text-2xl md:text-5xl font-bold text-pink-600 days-counter" style="font-family:Georgia,serif">0</div>
+        <div class="text-xs md:text-base text-pink-400 mt-1 md:mt-2 font-medium">天</div>
       </div>
-      <div class="bg-pink-50 rounded-2xl p-4 md:p-6 shadow-md">
-        <div class="text-3xl md:text-5xl font-bold text-pink-600" id="hours-together" style="font-family:Georgia,serif">0</div>
-        <div class="text-sm md:text-base text-pink-400 mt-2 font-medium">小时</div>
+      <div class="bg-pink-50 rounded-2xl p-3 md:p-6 shadow-md">
+        <div class="text-2xl md:text-5xl font-bold text-pink-600 hours-counter" style="font-family:Georgia,serif">0</div>
+        <div class="text-xs md:text-base text-pink-400 mt-1 md:mt-2 font-medium">小时</div>
       </div>
-      <div class="bg-pink-50 rounded-2xl p-4 md:p-6 shadow-md">
-        <div class="text-3xl md:text-5xl font-bold text-pink-600" id="minutes-together" style="font-family:Georgia,serif">0</div>
-        <div class="text-sm md:text-base text-pink-400 mt-2 font-medium">分钟</div>
+      <div class="bg-pink-50 rounded-2xl p-3 md:p-6 shadow-md">
+        <div class="text-2xl md:text-5xl font-bold text-pink-600 minutes-counter" style="font-family:Georgia,serif">0</div>
+        <div class="text-xs md:text-base text-pink-400 mt-1 md:mt-2 font-medium">分钟</div>
       </div>
-      <div class="bg-pink-50 rounded-2xl p-4 md:p-6 shadow-md">
-        <div class="text-3xl md:text-5xl font-bold text-pink-600" id="seconds-together" style="font-family:Georgia,serif">0</div>
-        <div class="text-sm md:text-base text-pink-400 mt-2 font-medium">秒</div>
+      <div class="bg-pink-50 rounded-2xl p-3 md:p-6 shadow-md">
+        <div class="text-2xl md:text-5xl font-bold text-pink-600 seconds-counter" style="font-family:Georgia,serif">0</div>
+        <div class="text-xs md:text-base text-pink-400 mt-1 md:mt-2 font-medium">秒</div>
       </div>
     </div>
 
@@ -647,10 +647,27 @@ function updateTimeTogether() {
   const minutes = Math.floor(diff / (1000 * 60));
   const seconds = Math.floor(diff / 1000);
 
-  document.getElementById('days-together').textContent = days;
-  document.getElementById('hours-together').textContent = hours;
-  document.getElementById('minutes-together').textContent = minutes;
-  document.getElementById('seconds-together').textContent = seconds;
+  const fmt = n => n.toLocaleString('en-US');
+
+  document.getElementById('days-together').textContent = fmt(days);
+  document.getElementById('hours-together').textContent = fmt(hours);
+  document.getElementById('minutes-together').textContent = fmt(minutes);
+  document.getElementById('seconds-together').textContent = fmt(seconds);
+
+  // 数字太长时自动缩小字体
+  const isMobile = window.innerWidth < 768;
+  document.querySelectorAll('.days-counter,.hours-counter,.minutes-counter,.seconds-counter').forEach(el => {
+    const len = el.textContent.replace(/,/g,'').length;
+    if (len <= 3) {
+      el.className = el.className.replace(/text-\S+/g, '').trim() + (isMobile ? ' text-2xl' : ' md:text-5xl') + ' font-bold text-pink-600';
+    } else if (len <= 5) {
+      el.className = el.className.replace(/text-\S+/g, '').trim() + (isMobile ? ' text-xl' : ' md:text-4xl') + ' font-bold text-pink-600';
+    } else if (len <= 7) {
+      el.className = el.className.replace(/text-\S+/g, '').trim() + (isMobile ? ' text-lg' : ' md:text-3xl') + ' font-bold text-pink-600';
+    } else {
+      el.className = el.className.replace(/text-\S+/g, '').trim() + (isMobile ? ' text-base' : ' md:text-2xl') + ' font-bold text-pink-600';
+    }
+  });
 
   // 更新文字
   const togetherDate = togetherSince.toLocaleDateString('zh-CN', {
@@ -658,7 +675,7 @@ function updateTimeTogether() {
   });
   document.getElementById('together-text').innerHTML =
     `从 <span class="text-pink-600 font-bold">${togetherDate}</span> 到今天，<br>
-     我们一起经历了 <span class="text-pink-600 font-bold text-2xl">${days}</span> 个日夜，<br>
+     我们一起经历了 <span class="text-pink-600 font-bold text-2xl">${fmt(days)}</span> 个日夜，<br>
      每一分每一秒都因为有你而变得美好 💕`;
 }
 
