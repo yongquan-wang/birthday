@@ -250,8 +250,7 @@ tailwind.config = {
   祝福弹窗
 ============================================================ -->
 <div id="wish-modal" style="display:none;position:fixed;inset:0;z-index:9998;
-  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
-  display:flex;align-items:center;justify-content:center;">
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);">
   <div style="background:white;border-radius:24px;padding:2.5rem;max-width:440px;width:90%;text-align:center;
     box-shadow:0 24px 64px rgba(0,0,0,0.2);position:relative;">
     <div style="font-size:3rem" id="wish-emoji">🌟</div>
@@ -789,7 +788,10 @@ function generateWish() {
 
   document.getElementById('wish-emoji').textContent = wishes[index].emoji;
   document.getElementById('wish-text').textContent = wishes[index].text;
-  document.getElementById('wish-modal').style.display = 'flex';
+  const modal = document.getElementById('wish-modal');
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
 }
 
 // =============================================================
