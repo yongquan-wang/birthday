@@ -376,19 +376,19 @@ tailwind.config = {
     <!-- 计时器 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-6 mb-8 reveal">
       <div class="bg-pink-50 rounded-2xl p-3 md:p-6 shadow-md">
-        <div class="text-2xl md:text-5xl font-bold text-pink-600 days-counter" style="font-family:Georgia,serif">0</div>
+        <div class="text-lg md:text-4xl font-bold text-pink-600" id="days-together" style="font-family:Georgia,serif">0</div>
         <div class="text-xs md:text-base text-pink-400 mt-1 md:mt-2 font-medium">天</div>
       </div>
       <div class="bg-pink-50 rounded-2xl p-3 md:p-6 shadow-md">
-        <div class="text-2xl md:text-5xl font-bold text-pink-600 hours-counter" style="font-family:Georgia,serif">0</div>
+        <div class="text-lg md:text-4xl font-bold text-pink-600" id="hours-together" style="font-family:Georgia,serif">0</div>
         <div class="text-xs md:text-base text-pink-400 mt-1 md:mt-2 font-medium">小时</div>
       </div>
       <div class="bg-pink-50 rounded-2xl p-3 md:p-6 shadow-md">
-        <div class="text-2xl md:text-5xl font-bold text-pink-600 minutes-counter" style="font-family:Georgia,serif">0</div>
+        <div class="text-lg md:text-4xl font-bold text-pink-600" id="minutes-together" style="font-family:Georgia,serif">0</div>
         <div class="text-xs md:text-base text-pink-400 mt-1 md:mt-2 font-medium">分钟</div>
       </div>
       <div class="bg-pink-50 rounded-2xl p-3 md:p-6 shadow-md">
-        <div class="text-2xl md:text-5xl font-bold text-pink-600 seconds-counter" style="font-family:Georgia,serif">0</div>
+        <div class="text-lg md:text-4xl font-bold text-pink-600" id="seconds-together" style="font-family:Georgia,serif">0</div>
         <div class="text-xs md:text-base text-pink-400 mt-1 md:mt-2 font-medium">秒</div>
       </div>
     </div>
@@ -653,22 +653,6 @@ function updateTimeTogether() {
   document.getElementById('minutes-together').textContent = fmt(minutes);
   document.getElementById('seconds-together').textContent = fmt(seconds);
 
-  // 数字太长时自动缩小字体
-  const isMobile = window.innerWidth < 768;
-  document.querySelectorAll('.days-counter,.hours-counter,.minutes-counter,.seconds-counter').forEach(el => {
-    const len = el.textContent.replace(/,/g,'').length;
-    if (len <= 3) {
-      el.className = el.className.replace(/text-\S+/g, '').trim() + (isMobile ? ' text-2xl' : ' md:text-5xl') + ' font-bold text-pink-600';
-    } else if (len <= 5) {
-      el.className = el.className.replace(/text-\S+/g, '').trim() + (isMobile ? ' text-xl' : ' md:text-4xl') + ' font-bold text-pink-600';
-    } else if (len <= 7) {
-      el.className = el.className.replace(/text-\S+/g, '').trim() + (isMobile ? ' text-lg' : ' md:text-3xl') + ' font-bold text-pink-600';
-    } else {
-      el.className = el.className.replace(/text-\S+/g, '').trim() + (isMobile ? ' text-base' : ' md:text-2xl') + ' font-bold text-pink-600';
-    }
-  });
-
-  // 更新文字
   const togetherDate = togetherSince.toLocaleDateString('zh-CN', {
     year: 'numeric', month: 'long', day: 'numeric'
   });
