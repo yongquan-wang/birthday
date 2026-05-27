@@ -673,8 +673,24 @@ const CONFIG = {
 window.addEventListener('load', () => {
   setTimeout(() => {
     document.getElementById('loading-screen').classList.add('hidden');
+    // 加载完成后自动播放音乐
+    autoPlayMusic();
   }, 1500);
 });
+
+function autoPlayMusic() {
+  const audio = document.getElementById('bg-music');
+  const btn = document.getElementById('music-btn');
+  const icon = document.getElementById('music-icon');
+  if (!audio) return;
+  audio.volume = 0.6;
+  audio.play().then(() => {
+    btn.classList.add('playing');
+    icon.className = 'fa-solid fa-pause';
+  }).catch(() => {
+    // 浏览器拦截自动播放，用户需要手动点击音乐按钮
+  });
+}
 
 // =============================================================
 // 更新页面中所有名字占位
@@ -897,6 +913,7 @@ function toggleMusic() {
   const icon = document.getElementById('music-icon');
 
   if (audio.paused) {
+    audio.volume = 0.6;
     audio.play().then(() => {
       btn.classList.add('playing');
       icon.className = 'fa-solid fa-pause';
