@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎂 Happy Birthday</title>
+
+<!-- ============================================================
+  Tailwind CSS v3 CDN
+============================================================ -->
+<script src="https://cdn.tailwindcss.com">
+</script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        love: { 50:'#fff5f7',100:'#ffe4e9',200:'#fecdd5',300:'#fda4b7',400:'#fb6f92',500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337' }
+      },
+      fontFamily: {
+        fancy: ['"Georgia"','"Times New Roman"','serif'],
+      }
+    }
+  }
+}
+</script>
+
+<!-- ============================================================
+  Font Awesome CDN
+============================================================ -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<!-- ============================================================
+  自定义样式
+============================================================ -->
+<style>
+  * { scroll-behavior: smooth; }
+  body { overflow-x: hidden; }
+
+  /* ---------- 页面加载动画 ---------- */
+  #loading-screen {
+    position: fixed; z-index: 9999; inset: 0;
+    background: linear-gradient(135deg, #fce4ec, #f8bbd0, #f48fb1);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 0.8s, visibility 0.8s;
+  }
+  #loading-screen.hidden { opacity: 0; visibility: hidden; }
+  .loader-heart {
+    animation: loaderBeat 0.8s ease-in-out infinite;
+    font-size: 5rem; color: #e91e63;
+    filter: drop-shadow(0 0 20px rgba(233,30,99,0.4));
+  }
+  @keyframes loaderBeat {
+    0%,100% { transform: scale(1); }
+    15% { transform: scale(1.25); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.15); }
+    60% { transform: scale(1); }
+  }
+
+  /* ---------- 飘落爱心 ---------- */
+  .hearts-container {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden;
+  }
+  .falling-heart {
+    position: absolute; top: -10%;
+    animation: heartFall linear infinite;
+    color: #f43f5e; opacity: 0.35;
+    font-size: 1.5rem;
+  }
+  @keyframes heartFall {
+    0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.5; }
+    50% { opacity: 0.3; }
+    100% { transform: translateY(110vh) rotate(360deg) scale(0.3); opacity: 0; }
+  }
+
+  /* ---------- 滚动入场动画 ---------- */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ---------- 向下箭头弹跳 ---------- */
+  .bounce-arrow {
+    animation: bounceDown 2s ease-in-out infinite;
+  }
+  @keyframes bounceDown {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(12px); }
+  }
+
+  /* ---------- 蜡烛火焰动画 ---------- */
+  .flame {
+    animation: flicker 0.3s ease-in-out infinite alternate;
+    transform-origin: center bottom;
+  }
+  @keyframes flicker {
+    0% { transform: scaleY(1) scaleX(1); }
+    100% { transform: scaleY(1.1) scaleX(0.9); }
+  }
+  .flame.out { opacity: 0; transition: opacity 0.5s; }
+
+  /* ---------- 照片悬停 ---------- */
+  .photo-card {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                box-shadow 0.4s ease;
+    cursor: pointer;
+  }
+  .photo-card:hover {
+    transform: scale(1.06) rotate(-1deg);
+    box-shadow: 0 20px 40px rgba(233,30,99,0.2);
+  }
+
+  /* ---------- 愿望卡片 ---------- */
+  .wish-card {
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+    cursor: default;
+  }
+  .wish-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 32px rgba(233,30,99,0.18);
+  }
+
+  /* ---------- 音乐按钮 ---------- */
+  #music-btn {
+    position: fixed; bottom: 24px; right: 24px; z-index: 100;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: white; border: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    cursor: pointer; font-size: 1.3rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #music-btn:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(0,0,0,0.18); }
+  #music-btn.playing { background: #fce4ec; }
+
+  /* ---------- 惊喜弹窗 ---------- */
+  #surprise-modal {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.4s, visibility 0.4s;
+  }
+  #surprise-modal.show { opacity: 1; visibility: visible; }
+  #surprise-modal .modal-content {
+    background: white; border-radius: 24px; padding: 2.5rem;
+    max-width: 480px; width: 90%;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  #surprise-modal.show .modal-content { transform: scale(1); }
+
+  /* ---------- 回到顶部 ---------- */
+  #back-to-top {
+    position: fixed; bottom: 88px; right: 24px; z-index: 99;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #fce4ec; border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer; font-size: 1.1rem;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+  }
+  #back-to-top.show { opacity: 1; visibility: visible; }
+  #back-to-top:hover { transform: scale(1.1); }
+
+  /* ---------- 倒计时卡片 ---------- */
+  .countdown-box {
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
+    border-radius: 16px; padding: 0.8rem 1.2rem;
+    box-shadow: 0 4px 16px rgba(233,30,99,0.1);
+    text-align: center; min-width: 70px;
+  }
+
+  /* ---------- 蛋糕 SVG 相关 ---------- */
+  #candle-group { cursor: pointer; transition: transform 0.2s; }
+  #candle-group:hover { transform: scale(1.02); }
+
+  /* ---------- 响应式微调 ---------- */
+  @media (max-width: 640px) {
+    .countdown-box { min-width: 55px; padding: 0.5rem 0.7rem; }
+    .countdown-box .num { font-size: 1.5rem !important; }
+  }
+</style>
+</head>
+<body class="bg-pink-50 text-gray-800 antialiased">
+
+<!-- ============================================================
+  加载动画
+============================================================ -->
+<div id="loading-screen">
+  <div class="loader-heart">❤️</div>
+  <p class="text-pink-800 text-lg mt-4 font-medium">正在准备你的惊喜...</p>
+</div>
+
+<!-- ============================================================
+  飘落爱心容器
+============================================================ -->
+<div class="hearts-container" id="hearts-container"></div>
+
+<!-- ============================================================
+  背景音乐按钮
+============================================================ -->
+<button id="music-btn" title="打开音乐" onclick="toggleMusic()">
+  <i class="fa-solid fa-music" id="music-icon"></i>
+</button>
+<audio id="bg-music" loop preload="auto" style="display:none">
+  <!-- ========================================================
+    音乐文件：把生日歌MP3放在同目录下，命名为 birthday-song.mp3
+    或者替换下面的 src 为你的在线音乐链接
+  ======================================================== -->
+  <source src="birthday-song.mp3" type="audio/mpeg">
+</audio>
+
+<!-- ============================================================
+  回到顶部按钮
+============================================================ -->
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fa-solid fa-arrow-up"></i>
+</button>
+
+<!-- ============================================================
+  惊喜弹窗
+============================================================ -->
+<div id="surprise-modal">
+  <div class="modal-content">
+    <div style="font-size:4rem">💌</div>
+    <h2 class="text-3xl font-bold text-pink-600 mt-4" style="font-family:Georgia,serif">
+      致我生命中最重要的人
+    </h2>
+    <p class="text-gray-600 mt-4 leading-relaxed text-lg">
+      你知道吗？每次看到你的笑容，我的心就像是被阳光照亮了一样。
+      <br><br>
+      你是我平淡生活里最耀眼的惊喜，是我漫长岁月里最温柔的存在。
+      <br><br>
+      生日快乐，我的女孩。🎂💕
+    </p>
+    <button onclick="closeSurprise()"
+      class="mt-6 px-8 py-3 bg-pink-500 text-white rounded-full text-lg font-medium
+             hover:bg-pink-600 transition-colors shadow-lg hover:shadow-xl">
+      收下这份心意
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+  祝福弹窗
+============================================================ -->
+<div id="wish-modal" style="display:none;position:fixed;inset:0;z-index:9998;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:24px;padding:2.5rem;max-width:440px;width:90%;text-align:center;
+    box-shadow:0 24px 64px rgba(0,0,0,0.2);position:relative;">
+    <div style="font-size:3rem" id="wish-emoji">🌟</div>
+    <p class="text-xl text-pink-700 mt-4 leading-relaxed" style="font-family:Georgia,serif" id="wish-text"></p>
+    <button onclick="document.getElementById('wish-modal').style.display='none'"
+      class="mt-6 px-6 py-2 bg-pink-100 text-pink-600 rounded-full font-medium hover:bg-pink-200 transition-colors">
+      再来一条
+    </button>
+    <button onclick="document.getElementById('wish-modal').style.display='none'"
+      class="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+  </div>
+</div>
+
+<!-- ============================================================
+  ===============================================================
+  主内容
+  ===============================================================
+============================================================ -->
+<main class="relative z-10">
+
+<!-- ============================================================
+  第1部分：首屏 Hero
+============================================================ -->
+<section class="min-h-screen flex flex-col items-center justify-center text-center px-4 relative overflow-hidden"
+         style="background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 30%, #f48fb1 60%, #f06292 100%);">
+
+  <!-- 装饰光晕 -->
+  <div class="absolute top-10 left-10 w-72 h-72 rounded-full opacity-20"
+       style="background: radial-gradient(circle, white, transparent);"></div>
+  <div class="absolute bottom-10 right-10 w-96 h-96 rounded-full opacity-15"
+       style="background: radial-gradient(circle, white, transparent);"></div>
+
+  <!-- 小星星装饰 -->
+  <div class="absolute top-20 right-20 text-3xl animate-pulse" style="animation-delay:0s">✨</div>
+  <div class="absolute top-40 left-16 text-2xl animate-pulse" style="animation-delay:0.5s">⭐</div>
+  <div class="absolute bottom-32 right-16 text-2xl animate-pulse" style="animation-delay:1s">🌟</div>
+  <div class="absolute top-60 right-32 text-xl animate-pulse" style="animation-delay:0.3s">💫</div>
+
+  <!-- 标题 -->
+  <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 reveal"
+      style="text-shadow: 0 4px 20px rgba(233,30,99,0.3); font-family: Georgia, 'Times New Roman', serif;">
+    Happy Birthday, <br class="md:hidden">
+    <!-- =====================================================
+      替换为她的名字
+    ===================================================== -->
+    <span class="text-pink-200">[她的名字]</span>!
+    <span class="inline-block animate-bounce" style="animation-duration:1.5s">🎂</span>
+  </h1>
+
+  <!-- 副标题 -->
+  <p class="text-lg md:text-2xl text-white/90 mt-4 reveal max-w-xl leading-relaxed"
+     style="text-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    愿你永远被爱包围，永远闪闪发光 ✨
+  </p>
+
+  <!-- 倒计时 -->
+  <div id="birthday-countdown" class="flex gap-3 md:gap-5 mt-8 reveal"></div>
+
+  <!-- 生日蛋糕 SVG -->
+  <div class="mt-10 reveal max-w-xs md:max-w-sm">
+    <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" class="w-full">
+      <!-- 蛋糕底层 -->
+      <rect x="30" y="120" width="140" height="40" rx="8" fill="#f8bbd0" stroke="#e91e63" stroke-width="1.5"/>
+      <rect x="30" y="122" width="140" height="8" rx="4" fill="#f06292" opacity="0.5"/>
+      <!-- 蛋糕中层 -->
+      <rect x="45" y="90" width="110" height="35" rx="8" fill="#f48fb1" stroke="#e91e63" stroke-width="1.5"/>
+      <rect x="45" y="92" width="110" height="7" rx="3" fill="#f06292" opacity="0.4"/>
+      <!-- 蛋糕上层 -->
+      <rect x="60" y="62" width="80" height="32" rx="8" fill="#f06292" stroke="#e91e63" stroke-width="1.5"/>
+      <!-- 蜡烛 -->
+      <g id="candle-group">
+        <!-- 蜡烛1 -->
+        <rect x="78" y="30" width="6" height="32" rx="3" fill="#ffcc80"/>
+        <rect x="78" y="28" width="6" height="6" rx="2" fill="#ef5350"/>
+        <ellipse class="flame" cx="81" cy="24" rx="4" ry="7" fill="#ff9800" id="flame1"/>
+        <!-- 蜡烛2 -->
+        <rect x="96" y="26" width="6" height="36" rx="3" fill="#ffcc80"/>
+        <rect x="96" y="24" width="6" height="6" rx="2" fill="#ef5350"/>
+        <ellipse class="flame" cx="99" cy="20" rx="5" ry="8" fill="#ff9800" id="flame2"/>
+        <!-- 蜡烛3 -->
+        <rect x="114" y="30" width="6" height="32" rx="3" fill="#ffcc80"/>
+        <rect x="114" y="28" width="6" height="6" rx="2" fill="#ef5350"/>
+        <ellipse class="flame" cx="117" cy="24" rx="4" ry="7" fill="#ff9800" id="flame3"/>
+      </g>
+      <!-- 草莓（隐藏惊喜） -->
+      <circle cx="138" cy="72" r="6" fill="#e53935" opacity="0.85" id="strawberry"
+              style="cursor:pointer"/>
+      <circle cx="137" cy="71" r="1.5" fill="#ffeb3b" opacity="0.6"/>
+      <circle cx="139" cy="70" r="1.2" fill="#ffeb3b" opacity="0.6"/>
+      <text x="140" y="78" font-size="7" fill="#4caf50">🍃</text>
+      <!-- 裱花 -->
+      <circle cx="50" cy="88" r="4" fill="#fce4ec" stroke="#e91e63" stroke-width="0.5"/>
+      <circle cx="70" cy="85" r="4" fill="#fce4ec" stroke="#e91e63" stroke-width="0.5"/>
+      <circle cx="90" cy="88" r="4" fill="#fce4ec" stroke="#e91e63" stroke-width="0.5"/>
+      <circle cx="110" cy="85" r="4" fill="#fce4ec" stroke="#e91e63" stroke-width="0.5"/>
+      <circle cx="130" cy="88" r="4" fill="#fce4ec" stroke="#e91e63" stroke-width="0.5"/>
+      <circle cx="150" cy="88" r="4" fill="#fce4ec" stroke="#e91e63" stroke-width="0.5"/>
+      <circle cx="60" cy="60" r="3.5" fill="#fce4ec" stroke="#e91e63" stroke-width="0.5"/>
+      <circle cx="100" cy="58" r="3.5" fill="#fce4ec" stroke="#e91e63" stroke-width="0.5"/>
+      <circle cx="140" cy="60" r="3.5" fill="#fce4ec" stroke="#e91e63" stroke-width="0.5"/>
+    </svg>
+    <p class="text-xs text-white/60 mt-2">👆 点击蜡烛吹灭它</p>
+  </div>
+
+  <!-- 向下箭头 -->
+  <div class="absolute bottom-8 text-white text-3xl bounce-arrow cursor-pointer"
+       onclick="document.getElementById('section-time').scrollIntoView({behavior:'smooth'})">
+    <i class="fa-solid fa-chevron-down"></i>
+  </div>
+</section>
+
+<!-- ============================================================
+  第2部分：我们在一起的时光
+============================================================ -->
+<section id="section-time" class="py-20 px-4 bg-white">
+  <div class="max-w-2xl mx-auto text-center">
+    <h2 class="text-3xl md:text-4xl font-bold text-pink-700 mb-2 reveal"
+        style="font-family:Georgia,serif">
+      💕 我们一起走过的日子
+    </h2>
+    <div class="w-16 h-1 bg-pink-400 mx-auto rounded-full mt-4 mb-10 reveal"></div>
+
+    <!-- 计时器 -->
+    <div class="grid grid-cols-4 gap-3 md:gap-6 mb-8 reveal">
+      <div class="bg-pink-50 rounded-2xl p-4 md:p-6 shadow-md">
+        <div class="text-3xl md:text-5xl font-bold text-pink-600" id="days-together" style="font-family:Georgia,serif">0</div>
+        <div class="text-sm md:text-base text-pink-400 mt-2 font-medium">天</div>
+      </div>
+      <div class="bg-pink-50 rounded-2xl p-4 md:p-6 shadow-md">
+        <div class="text-3xl md:text-5xl font-bold text-pink-600" id="hours-together" style="font-family:Georgia,serif">0</div>
+        <div class="text-sm md:text-base text-pink-400 mt-2 font-medium">小时</div>
+      </div>
+      <div class="bg-pink-50 rounded-2xl p-4 md:p-6 shadow-md">
+        <div class="text-3xl md:text-5xl font-bold text-pink-600" id="minutes-together" style="font-family:Georgia,serif">0</div>
+        <div class="text-sm md:text-base text-pink-400 mt-2 font-medium">分钟</div>
+      </div>
+      <div class="bg-pink-50 rounded-2xl p-4 md:p-6 shadow-md">
+        <div class="text-3xl md:text-5xl font-bold text-pink-600" id="seconds-together" style="font-family:Georgia,serif">0</div>
+        <div class="text-sm md:text-base text-pink-400 mt-2 font-medium">秒</div>
+      </div>
+    </div>
+
+    <!-- 温馨文字 -->
+    <p class="text-lg md:text-xl text-gray-600 leading-relaxed reveal" id="together-text">
+      <!-- JS 动态生成 -->
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================
+  第3部分：写给她的信
+============================================================ -->
+<section class="py-20 px-4" style="background: linear-gradient(135deg, #fce4ec, #f8bbd0);">
+  <div class="max-w-2xl mx-auto">
+    <h2 class="text-3xl md:text-4xl font-bold text-pink-700 mb-2 text-center reveal"
+        style="font-family:Georgia,serif">
+      💌 给最爱的你
+    </h2>
+    <div class="w-16 h-1 bg-pink-400 mx-auto rounded-full mt-4 mb-10 reveal"></div>
+
+    <div class="bg-white/80 backdrop-blur rounded-3xl p-8 md:p-12 shadow-xl shadow-pink-200/30 reveal leading-loose">
+      <!-- ====================================================
+        替换为你想对她说的话
+      ==================================================== -->
+      <p class="text-lg text-gray-700 mb-4" style="font-family:Georgia,serif">
+        亲爱的<strong class="text-pink-600">[她的名字]</strong>：
+      </p>
+      <p class="text-lg text-gray-700 mb-4 leading-relaxed">
+        又陪你走过了一年。看着你开心的样子，是我最大的幸福。
+      </p>
+      <p class="text-lg text-gray-700 mb-4 leading-relaxed">
+        谢谢你出现在我的生命里，谢谢你的温柔、善良和包容。你就像一束光，照亮了我平淡的每一天。
+        每当想起你的笑容，我就觉得整个世界都变得温暖了。
+      </p>
+      <p class="text-lg text-gray-700 mb-4 leading-relaxed">
+        愿你在新的一岁里，平安喜乐，万事胜意，所有的美好都如约而至。
+        愿你每天都能睡个好觉，吃嘛嘛香，做自己喜欢的事，成为自己想成为的人。
+      </p>
+      <p class="text-lg text-gray-700 leading-relaxed">
+        我会一直陪在你身边，做你最坚实的依靠，陪你走过每一个春夏秋冬。
+      </p>
+      <p class="text-lg text-gray-700 mt-6 text-right leading-relaxed" style="font-family:Georgia,serif">
+        爱你的<br><strong class="text-pink-600">[你的名字]</strong>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+  第4部分：照片墙
+============================================================ -->
+<section class="py-20 px-4 bg-white">
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl md:text-4xl font-bold text-pink-700 mb-2 text-center reveal"
+        style="font-family:Georgia,serif">
+      📸 我们的美好瞬间
+    </h2>
+    <div class="w-16 h-1 bg-pink-400 mx-auto rounded-full mt-4 mb-10 reveal"></div>
+
+    <div id="photo-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+      <!-- 照片由 JS 动态生成，修改 CONFIG.photos 数组即可 -->
+    </div>
+
+    <p class="text-center text-sm text-gray-400 mt-6 reveal">
+      💡 在 CONFIG.photos 数组中编辑照片路径，想放几张改几张
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================
+  第5部分：生日愿望清单
+============================================================ -->
+<section class="py-20 px-4" style="background: linear-gradient(135deg, #fce4ec, #fff0f5);">
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl md:text-4xl font-bold text-pink-700 mb-2 text-center reveal"
+        style="font-family:Georgia,serif">
+      🎁 你的愿望，我来实现
+    </h2>
+    <div class="w-16 h-1 bg-pink-400 mx-auto rounded-full mt-4 mb-10 reveal"></div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- ====================================================
+        愿望卡片：修改 text 为你承诺的愿望
+      ==================================================== -->
+      <div class="wish-card bg-white rounded-2xl p-6 text-center shadow-lg reveal">
+        <div class="text-4xl mb-4">✈️</div>
+        <h3 class="text-xl font-bold text-pink-600 mb-2">一次说走就走的旅行</h3>
+        <p class="text-gray-500 text-sm">带你去任何你想去的地方，看最美的风景</p>
+      </div>
+      <div class="wish-card bg-white rounded-2xl p-6 text-center shadow-lg reveal">
+        <div class="text-4xl mb-4">🍽️</div>
+        <h3 class="text-xl font-bold text-pink-600 mb-2">一顿你最爱的大餐</h3>
+        <p class="text-gray-500 text-sm">带你去吃你最爱的餐厅，点上满满一桌</p>
+      </div>
+      <div class="wish-card bg-white rounded-2xl p-6 text-center shadow-lg reveal">
+        <div class="text-4xl mb-4">🎬</div>
+        <h3 class="text-xl font-bold text-pink-600 mb-2">陪你看一场电影</h3>
+        <p class="text-gray-500 text-sm">准备好爆米花和奶茶，一起享受温馨时光</p>
+      </div>
+      <div class="wish-card bg-white rounded-2xl p-6 text-center shadow-lg reveal">
+        <div class="text-4xl mb-4">🤗</div>
+        <h3 class="text-xl font-bold text-pink-600 mb-2">一个大大的拥抱</h3>
+        <p class="text-gray-500 text-sm">随时随地，只要你想，我的怀抱永远为你敞开</p>
+      </div>
+    </div>
+
+    <!-- 生成祝福按钮 -->
+    <div class="text-center mt-12 reveal">
+      <button onclick="generateWish()"
+        class="px-8 py-4 bg-pink-500 text-white rounded-full text-lg font-medium
+               hover:bg-pink-600 transition-all shadow-xl hover:shadow-2xl
+               hover:scale-105 transform active:scale-95">
+        ✨ 点我获得一条祝福
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+  第6部分：页脚
+============================================================ -->
+<footer class="py-12 px-4 text-center bg-pink-100">
+  <p class="text-3xl mb-4">💖</p>
+  <p class="text-lg md:text-xl font-bold text-pink-700" style="font-family:Georgia,serif">
+    <!-- =====================================================
+      替换为你的名字和年份
+    ===================================================== -->
+    Made with ❤️ by [你的名字] | 2026
+  </p>
+  <p class="text-sm text-pink-400 mt-2">
+    愿你的每一天都如今天般美好 🌸
+  </p>
+</footer>
+
+</main>
+
+<!-- ============================================================
+  JavaScript
+============================================================ -->
+<script>
+// =============================================================
+// ★★★ 这里是所有你需要修改的变量 ★★★
+// =============================================================
+const CONFIG = {
+  // 她的名字
+  girlfriendName: '李梓滢',
+  // 她的生日（用于倒计时）
+  // 格式：'YYYY-MM-DD'
+  birthday: '2026-05-27',
+  // 你们在一起的第一天
+  // 格式：'YYYY-MM-DD'
+  togetherSince: '2024-05-21',
+  // 你的名字
+  yourName: '王勇权',
+  // 你们的照片列表 — 随便加多少张！
+  // 建议把照片放在 photos/ 文件夹，如 'photos/1.jpg'
+  // 没照片时用占位图，换成真实照片后直接替换路径即可
+  photos: [
+    'photos/1.jpg','photos/2.jpg','photos/3.jpg','photos/4.jpg',
+    'photos/5.jpg','photos/6.jpg','photos/7.jpg','photos/8.jpg',
+    'photos/9.jpg','photos/10.jpg','photos/11.jpg','photos/12.jpg',
+    'photos/13.jpg','photos/14.jpg','photos/15.jpg','photos/16.jpg',
+    'photos/17.jpg','photos/18.jpg','photos/19.jpg','photos/20.jpg',
+    'photos/21.jpg','photos/22.jpg','photos/23.jpg','photos/24.jpg',
+    'photos/25.jpg','photos/26.jpg','photos/27.jpg','photos/28.jpg',
+    'photos/29.jpg','photos/30.jpg','photos/31.jpg','photos/32.jpg',
+  ],
+};
+
+// =============================================================
+// 页面加载动画
+// =============================================================
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loading-screen').classList.add('hidden');
+  }, 1500);
+});
+
+// =============================================================
+// 更新页面中所有名字占位
+// =============================================================
+function updateNames() {
+  // 递归遍历所有文本节点替换占位符
+  function walk(node) {
+    if (node.nodeType === 3) {
+      if (node.textContent.includes('[她的名字]')) {
+        node.textContent = node.textContent.replace(/\[她的名字\]/g, CONFIG.girlfriendName);
+      }
+      if (node.textContent.includes('[你的名字]')) {
+        node.textContent = node.textContent.replace(/\[你的名字\]/g, CONFIG.yourName);
+      }
+    } else if (node.nodeType === 1) {
+      node.childNodes.forEach(walk);
+    }
+  }
+  document.querySelectorAll('h1, p, h2, h3, strong, footer').forEach(el => walk(el));
+}
+
+// =============================================================
+// 生日倒计时
+// =============================================================
+function updateCountdown() {
+  const now = new Date();
+  const birthdayDate = new Date(CONFIG.birthday);
+  // 如果今年生日已过，算明年的
+  birthdayDate.setFullYear(now.getFullYear());
+  if (birthdayDate < now) {
+    birthdayDate.setFullYear(now.getFullYear() + 1);
+  }
+
+  const diff = birthdayDate - now;
+
+  const container = document.getElementById('birthday-countdown');
+
+  // 如果距离生日不到24小时，判断是否是今天
+  const today = new Date();
+  const thisYearBirthday = new Date(CONFIG.birthday);
+  thisYearBirthday.setFullYear(today.getFullYear());
+
+  const isToday = today.getMonth() === thisYearBirthday.getMonth() &&
+                  today.getDate() === thisYearBirthday.getDate();
+
+  if (isToday) {
+    container.innerHTML = `
+      <div class="bg-white/90 backdrop-blur rounded-2xl px-8 py-6 shadow-xl animate-bounce">
+        <p class="text-3xl md:text-4xl font-bold text-pink-600" style="font-family:Georgia,serif">
+          🎉 今天是你的生日！🎉
+        </p>
+        <p class="text-pink-500 mt-2 text-lg">最特别的祝福给最特别的你 💕</p>
+      </div>`;
+    return;
+  }
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+  container.innerHTML = `
+    <div class="countdown-box"><div class="num text-2xl md:text-4xl font-bold text-pink-700">${days}</div><div class="text-xs md:text-sm text-pink-500 mt-1">天</div></div>
+    <div class="countdown-box"><div class="num text-2xl md:text-4xl font-bold text-pink-700">${hours}</div><div class="text-xs md:text-sm text-pink-500 mt-1">小时</div></div>
+    <div class="countdown-box"><div class="num text-2xl md:text-4xl font-bold text-pink-700">${minutes}</div><div class="text-xs md:text-sm text-pink-500 mt-1">分钟</div></div>
+    <div class="countdown-box"><div class="num text-2xl md:text-4xl font-bold text-pink-700">${seconds}</div><div class="text-xs md:text-sm text-pink-500 mt-1">秒</div></div>`;
+}
+
+// =============================================================
+// 在一起的时间计数器（实时更新）
+// =============================================================
+function updateTimeTogether() {
+  const togetherSince = new Date(CONFIG.togetherSince);
+  const now = new Date();
+  const diff = now - togetherSince;
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor(diff / (1000 * 60));
+  const seconds = Math.floor(diff / 1000);
+
+  document.getElementById('days-together').textContent = days;
+  document.getElementById('hours-together').textContent = hours;
+  document.getElementById('minutes-together').textContent = minutes;
+  document.getElementById('seconds-together').textContent = seconds;
+
+  // 更新文字
+  const togetherDate = togetherSince.toLocaleDateString('zh-CN', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
+  document.getElementById('together-text').innerHTML =
+    `从 <span class="text-pink-600 font-bold">${togetherDate}</span> 到今天，<br>
+     我们一起经历了 <span class="text-pink-600 font-bold text-2xl">${days}</span> 个日夜，<br>
+     每一分每一秒都因为有你而变得美好 💕`;
+}
+
+// =============================================================
+// 飘落爱心
+// =============================================================
+function createFallingHeart() {
+  const heart = document.createElement('div');
+  heart.className = 'falling-heart';
+  const emojis = ['❤️','💕','💖','💗','💝','🌸','✨','🩷'];
+  heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+  heart.style.left = Math.random() * 100 + '%';
+  heart.style.fontSize = (Math.random() * 1.5 + 0.8) + 'rem';
+  heart.style.animationDuration = (Math.random() * 10 + 8) + 's';
+  heart.style.animationDelay = Math.random() * 3 + 's';
+
+  document.getElementById('hearts-container').appendChild(heart);
+
+  setTimeout(() => heart.remove(), 12000);
+}
+
+// 每 300ms 创建一个爱心
+setInterval(createFallingHeart, 300);
+
+// =============================================================
+// 吹蜡烛
+// =============================================================
+let candlesBlown = false;
+// 为蜡烛绑定点击事件（比 inline onclick 更可靠）
+document.addEventListener('DOMContentLoaded', () => {
+  const candleGroup = document.getElementById('candle-group');
+  if (candleGroup) {
+    candleGroup.style.pointerEvents = 'all';
+    candleGroup.style.cursor = 'pointer';
+    candleGroup.addEventListener('click', blowCandles);
+  }
+  const strawberry = document.getElementById('strawberry');
+  if (strawberry) {
+    strawberry.addEventListener('click', (e) => { e.stopPropagation(); showSurprise(); });
+  }
+});
+
+function blowCandles() {
+  if (candlesBlown) return;
+  candlesBlown = true;
+
+  // 熄灭火焰
+  document.querySelectorAll('.flame').forEach(f => f.classList.add('out'));
+
+  // 播放音乐
+  const audio = document.getElementById('bg-music');
+  const btn = document.getElementById('music-btn');
+  audio.play().then(() => {
+    btn.classList.add('playing');
+    document.getElementById('music-icon').className = 'fa-solid fa-pause';
+  }).catch(() => {});
+
+  // 显示文案
+  const container = document.getElementById('birthday-countdown');
+  const oldHTML = container.innerHTML;
+  container.innerHTML = `
+    <div class="bg-white/90 backdrop-blur rounded-2xl px-8 py-6 shadow-xl" style="animation: loaderBeat 0.5s ease">
+      <p class="text-2xl md:text-3xl font-bold text-pink-600" style="font-family:Georgia,serif">
+        🎉 生日快乐，${CONFIG.girlfriendName}！
+      </p>
+      <p class="text-pink-500 mt-2">愿所有美好都奔向你 💕</p>
+    </div>`;
+
+  // 3秒后恢复倒计时
+  setTimeout(() => {
+    container.innerHTML = oldHTML;
+    candlesBlown = false;
+    document.querySelectorAll('.flame').forEach(f => f.classList.remove('out'));
+    updateCountdown();
+  }, 5000);
+}
+
+// =============================================================
+// 惊喜弹窗（点击草莓）
+// =============================================================
+function showSurprise() {
+  document.getElementById('surprise-modal').classList.add('show');
+}
+function closeSurprise() {
+  document.getElementById('surprise-modal').classList.remove('show');
+}
+
+// =============================================================
+// 随机祝福语
+// =============================================================
+const wishes = [
+  { emoji: '🌟', text: '愿你眼里有光，心中有爱，活成自己喜欢的模样。' },
+  { emoji: '🌸', text: '愿你如春日繁花，温柔浪漫，永远被世界温柔以待。' },
+  { emoji: '💫', text: '你的笑容是我见过最美的风景，愿它永远绽放在你脸上。' },
+  { emoji: '🌈', text: '愿你的人生如彩虹般绚烂，每一天都充满惊喜和感动。' },
+  { emoji: '🎀', text: '你是上天给我最好的礼物，愿你的每一天都闪闪发光。' },
+  { emoji: '💎', text: '愿岁月温柔待你，愿你所想皆所得，所行皆坦途。' },
+  { emoji: '🦋', text: '愿你自由如风，勇敢如蝶，飞向任何你想去的地方。' },
+  { emoji: '🌻', text: '愿你如向日葵般，永远朝着阳光，充满希望和力量。' },
+  { emoji: '🍀', text: '愿好运常伴你左右，每一天都是最好的一天。' },
+  { emoji: '✨', text: '你知道吗？你是这个世界上独一无二的奇迹。生日快乐！' },
+];
+
+let lastWishIndex = -1;
+function generateWish() {
+  let index;
+  do {
+    index = Math.floor(Math.random() * wishes.length);
+  } while (index === lastWishIndex && wishes.length > 1);
+  lastWishIndex = index;
+
+  document.getElementById('wish-emoji').textContent = wishes[index].emoji;
+  document.getElementById('wish-text').textContent = wishes[index].text;
+  document.getElementById('wish-modal').style.display = 'flex';
+}
+
+// =============================================================
+// 音乐开关
+// =============================================================
+function toggleMusic() {
+  const audio = document.getElementById('bg-music');
+  const btn = document.getElementById('music-btn');
+  const icon = document.getElementById('music-icon');
+
+  if (audio.paused) {
+    audio.play().then(() => {
+      btn.classList.add('playing');
+      icon.className = 'fa-solid fa-pause';
+    }).catch(() => {});
+  } else {
+    audio.pause();
+    btn.classList.remove('playing');
+    icon.className = 'fa-solid fa-music';
+  }
+}
+
+// =============================================================
+// 滚动入场动画（Intersection Observer）
+// =============================================================
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -30px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// =============================================================
+// 回到顶部按钮
+// =============================================================
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('back-to-top');
+  if (window.scrollY > 500) {
+    btn.classList.add('show');
+  } else {
+    btn.classList.remove('show');
+  }
+});
+
+// =============================================================
+// 初始化
+// =============================================================
+function init() {
+  updateNames();
+  updateCountdown();
+  updateTimeTogether();
+
+  // 每秒更新倒计时和在一起的时间
+  setInterval(() => {
+    updateCountdown();
+    updateTimeTogether();
+  }, 1000);
+
+  // 初始创建一批爱心
+  for (let i = 0; i < 15; i++) {
+    setTimeout(() => createFallingHeart(), i * 200);
+  }
+}
+
+init();
+
+// =============================================================
+// 动态渲染照片墙
+// =============================================================
+const photoPalette = [
+  '#fce4ec','#f8bbd0','#f48fb1','#ffcdd2',
+  '#e8eaf6','#f3e5f5','#ffe0b2','#b2dfdb',
+  '#c5cae9','#d1c4e9','#ffccbc','#b3e5fc',
+  '#fff9c4','#c8e6c9','#d7ccc8','#bbdefb',
+];
+
+function renderPhotoGrid() {
+  const grid = document.getElementById('photo-grid');
+  if (!grid || !CONFIG.photos.length) return;
+
+  grid.innerHTML = CONFIG.photos.map((src, i) => {
+    const bg = photoPalette[i % photoPalette.length];
+    const idx = i + 1;
+    return `
+      <div class="photo-card rounded-2xl overflow-hidden shadow-lg aspect-[4/3] relative group reveal"
+           style="background-color:${bg}">
+        <img src="${src}"
+             alt="我们的照片 ${idx}"
+             class="w-full h-full object-cover"
+             loading="lazy"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="absolute inset-0 items-center justify-center text-4xl"
+             style="display:none">
+          <i class="fa-solid fa-heart" style="color:${bg};filter:brightness(0.7)"></i>
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-t from-pink-500/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+}
+
+renderPhotoGrid();
+
+</script>
+
+</body>
+</html>
